@@ -535,18 +535,163 @@ cat /var/log/nginx/jarkom_access.log| grep "GET" | wc -l
 
 # Soal 8
 
+Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:
+Nama Algoritma Load Balancer
+Report hasil testing pada Apache Benchmark
+Grafik request per second untuk masing masing algoritma. 
+Analisis (8)
 
 ### Penyelesaian
+```
+Client (Revolte):
+ab -n 200 -c 10 http://192.199.2.2/
 
+
+Worker (3 PHP Worker):
+cat /var/log/nginx/jarkom_access.log| grep "GET" | wc -l
+truncate -s 0 /var/log/nginx/jarkom_access.log
+htop
+
+
+(Algo masukin ke Load Balancer Eisen)
+Round Robin (default)
+apt-get update
+apt-get install bind9 nginx
+
+
+echo '
+ upstream myweb  {
+        server 192.199.3.1; #IP Lugner
+        server 192.199.3.2; #IP Linie
+        server 192.199.3.3; #IP Lawine
+ }
+
+
+ server {
+        listen 80;
+        server_name granz.channel.d16.com;
+
+
+        location / {
+        proxy_pass http://myweb/;
+        }
+ }' > /etc/nginx/sites-available/lb-jarkom
+
+
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+
+
+service nginx restart
+nginx -t
+
+
+
+
+Weighted Round Robin
+echo '
+ upstream myweb  {
+        server 192.199.3.1 weight=4; #IP Lugner
+        server 192.199.3.2 weight=2; #IP Linie
+        server 192.199.3.3 weight=1; #IP Lawine
+ }
+
+
+ server {
+        listen 80;
+        server_name granz.channel.d16.com;
+
+
+        location / {
+        proxy_pass http://myweb/;
+        }
+ }' > /etc/nginx/sites-available/lb-jarkom
+
+
+unlink /etc/nginx/sites-enabled/lb-jarkom
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+
+
+service nginx restart
+nginx -t
+
+
+
+
+Least Connection
+echo '
+ upstream myweb  {
+        least_conn;
+        server 192.199.3.1; #IP Lugner
+        server 192.199.3.2; #IP Linie
+        server 192.199.3.3; #IP Lawine
+ }
+
+
+ server {
+        listen 80;
+        server_name granz.channel.d16.com;
+
+
+        location / {
+        proxy_pass http://myweb/;
+        proxy_set_header    X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header    Host $http_host;
+        }
+ }' > /etc/nginx/sites-available/lb-jarkom
+
+
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+
+
+service nginx restart
+nginx -t
+
+
+IP Hash
+echo '
+ upstream myweb  {
+        ip_hash;
+        server 192.199.3.1; #IP Lugner
+        server 192.199.3.2; #IP Linie
+        server 192.199.3.3; #IP Lawine
+ }
+
+
+ server {
+        listen 80;
+        server_name granz.channel.d16.com;
+
+
+        location / {
+        proxy_pass http://myweb/;
+        proxy_set_header    X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header    Host $http_host;
+        }
+ }' > /etc/nginx/sites-available/lb-jarkom
+
+
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+
+
+service nginx restart
+nginx -t
+```
 
 ### Bukti
 
 
 
 ## Soal 9
+Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire. (9)
 
 ### Penyelesaian
-
+Dengan Penyelesaian yang sama di nomor 8, namun setiap percobaan 1 worker, maka 3 worker distop, 2 wroker maka 1 qorker distop, dan seterusnya.
 
 ## Soal 10
 
